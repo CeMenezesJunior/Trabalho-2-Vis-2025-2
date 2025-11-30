@@ -4,6 +4,7 @@ let svg1, svg2;
 let globalMapaVotos = {};
 let globalMapaRegioes = {};
 let selectedStateSigla = null;
+let tooltip;
 
 const regioes = {
     'AC': 'Norte', 'AP': 'Norte', 'AM': 'Norte', 'PA': 'Norte', 'RO': 'Norte', 'RR': 'Norte', 'TO': 'Norte',
@@ -57,6 +58,11 @@ export async function loadDashboard(geojson, data) {
     globalMapaRegioes = mapaRegioes;
     selectedStateSigla = null;
 
+    // 1. CRIA O TOOLTIP (se não existir)
+    if (!tooltip) {
+        tooltip = d3.select('body').append('div').attr('class', 'map-tooltip');
+    }
+
     d3.select('#map1').html('');
     d3.select('#map2').html('');
 
@@ -99,21 +105,53 @@ function renderMap(svg, geojson, mapaVotos, turno) {
     paths
         .on('mouseover', function(e, d) {
             const sigla = d.properties.SIGLA;
+            
             if (sigla !== selectedStateSigla) {
                 d3.selectAll('.state-path').filter(p => p && p.properties.SIGLA === sigla)
                   .attr('opacity', 0.6)
                   .attr('stroke', '#333')
                   .attr('stroke-width', 1);
             }
+
+            const info = mapaVotos[sigla]?.[turno];
+            if (info) {
+                const vencedor = info.dados.find(c => c.CANDIDATO === info.vencedor);
+                const percent = (vencedor.TOTAL_VOTOS / info.total * 100).toFixed(1);
+                
+                tooltip.style('display', 'block')
+                    .html(`
+                        <h4>${sigla} (${turno}º Turno)</h4>
+                        <div class="tooltip-row">
+                            <span>Vencedor:</span> 
+                            <span class="tooltip-val" style="color:${getCandidateColor(info.vencedor)}">${info.vencedor}</span>
+                        </div>
+                        <div class="tooltip-row">
+                            <span>Votos:</span> 
+                            <span class="tooltip-val">${d3.format(".2s")(vencedor.TOTAL_VOTOS)} (${percent}%)</span>
+                        </div>
+                        <div class="tooltip-row">
+                            <span>Total Estado:</span> 
+                            <span class="tooltip-val">${d3.format(".2s")(info.total)}</span>
+                        </div>
+                    `);
+            }
+        })
+        .on('mousemove', function(e) {
+            tooltip
+                .style('top', (e.pageY + 10) + 'px')
+                .style('left', (e.pageX + 10) + 'px');
         })
         .on('mouseout', function(e, d) {
             const sigla = d.properties.SIGLA;
+            
             if (sigla !== selectedStateSigla) {
                 d3.selectAll('.state-path').filter(p => p && p.properties.SIGLA === sigla)
                   .attr('opacity', 1)
                   .attr('stroke', '#fff')
                   .attr('stroke-width', 0.5);
             }
+
+            tooltip.style('display', 'none');
         })
         .on('click', (e, d) => {
             e.stopPropagation();
@@ -135,7 +173,6 @@ function renderMap(svg, geojson, mapaVotos, turno) {
             updateCharts(sigla, turno, globalMapaVotos[sigla]);
         });
         
-    paths.append('title').text(d => `${d.properties.SIGLA} (Turno ${turno})`);
 
     renderLegend(svg, [
         { label: 'Lula', color: getCandidateColor('LULA') },
@@ -344,7 +381,7 @@ function renderEvolution(selector, data) {
     const container = d3.select(selector);
     const width = 400;
     const height = 220; 
-    const margin = {top: 40, right: 30, bottom: 30, left: 60};
+    const margin = {top: 30, right: 30, bottom: 30, left: 60};
 
     const svg = container.append('svg')
         .attr('viewBox', `0 0 ${width} ${height}`)
@@ -411,7 +448,6 @@ function renderTotals(selector, data) {
     const container = d3.select(selector);
     const width = 400;
     const height = 180; 
-    
     const margin = {top: 10, right: 130, bottom: 30, left: 80};
 
     const svg = container.append('svg')
@@ -470,4 +506,5 @@ export function clearDashboard() {
     d3.select('#chart-evolution').html('');
     d3.select('#chart-totals').html('');
     d3.select('#chart-info').html('<h3>Detalhes</h3><p class="placeholder-text">Clique em um estado para ver os dados.</p>');
+    if(tooltip) tooltip.style('display', 'none');
 }
