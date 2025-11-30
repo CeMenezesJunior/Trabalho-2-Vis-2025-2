@@ -13,8 +13,37 @@ body {
 
     flex-direction: column;
     flex-wrap: nowrap;
-    justify-content: center; 
-    align-items: center; 
+    justify-content: flex-start; 
+    align-items: stretch; 
+}
+
+.content-wrapper {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: flex-start;
+    flex: 1;
+    gap: 10px;
+    padding: 10px;
+}
+
+.map-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+}
+
+.chart-sidebar {
+    width: 320px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    border: #bfbfbf solid 1px;
+    padding: 15px;
+    overflow-y: auto;
+    max-height: 800px;
+    flex-shrink: 0;
 }
 
 .buttom-container {
@@ -27,12 +56,9 @@ body {
 }
 
 svg {
-    margin: 10px;
     background-color: #ffffff;
-
     border-radius: 8px;
     border: #bfbfbf solid 1px;
-
     height: 800px;
     width: 800px;
 }
