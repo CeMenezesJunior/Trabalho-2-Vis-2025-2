@@ -3,22 +3,56 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Carregamento dos Dados</title>
+    <title>Painel Eleitoral 2022</title>
     <link rel="stylesheet" href="index.css">
 </head>
 
 <body>
+    <div class="header">
+        <h1>Eleições 2022: Evolução Espaço-Temporal</h1>
+        <div class="controls">
+            <button id="loadBtn">Carregar Dados</button>
+            <button id="clearBtn">Limpar</button>
+        </div>
+    </div>
+
     <div class="main-container">
-        <div class="content-wrapper">
-            <div class="map-wrapper">
-                <svg></svg>
+        
+        <div class="top-row">
+            <div class="maps-container">
+                <div class="map-box">
+                    <h3>1º Turno</h3>
+                    <div id="map1" class="map-svg-container"></div>
+                </div>
+                <div class="map-box">
+                    <h3>2º Turno</h3>
+                    <div id="map2" class="map-svg-container"></div>
+                </div>
             </div>
-            <div id="chart-container" class="chart-sidebar"></div>
+
+            <div class="sidebar">
+                <div id="chart-info">
+                    <h3>Detalhes</h3>
+                    <p class="placeholder-text">Clique em um estado para ver o ranking.</p>
+                </div>
+                
+                <div id="chart-ranking" class="sidebar-chart"></div>
+                
+                <div id="chart-distribution" class="sidebar-chart"></div>
+            </div>
         </div>
-        <div class="buttom-container">
-            <button id="loadBtn">Load Chart</button>
-            <button id="clearBtn">Clear Chart</button>
+
+        <div class="bottom-row">
+            <div class="bottom-chart-box">
+                <h4>Evolução (T1 vs T2)</h4>
+                <div id="chart-evolution"></div>
+            </div>
+            <div class="bottom-chart-box">
+                <h4>Total de Votos Válidos</h4>
+                <div id="chart-totals"></div>
+            </div>
         </div>
+
     </div>
 
     <script type="module" src="src/main.js"></script>

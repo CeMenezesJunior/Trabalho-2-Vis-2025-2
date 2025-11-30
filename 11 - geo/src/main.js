@@ -1,55 +1,35 @@
-import { loadMap, clearMap } from './map';
 import { Votacoes } from './votacoes';
+import { loadDashboard, clearDashboard } from './dash';
 
-function callbacks(data, votacoes) {
-    const loadBtn   = document.querySelector('#loadBtn');
-    const clearBtn  = document.querySelector('#clearBtn');
+const loadBtn = document.querySelector('#loadBtn');
+const clearBtn = document.querySelector('#clearBtn');
 
-    if (!loadBtn || !clearBtn) {
-        return;
-    }
-
-    loadBtn.addEventListener('click', async () => {
-        await loadMap(data, votacoes);
-    });
-
-    clearBtn.addEventListener('click', async () => {
-        clearMap();
-    });
-}
-
-window.onload = async () => {
+loadBtn.addEventListener('click', async () => {
+    clearDashboard();
     
-
     const votacoes = new Votacoes();
     await votacoes.init();
-
-    await votacoes.loadVotacoes();
+    await votacoes.loadVotacoes(); 
 
     const sql = `
-        SELECT CANDIDATO, SUM(VOTOS) AS TOTAL_VOTOS, ESTADO, TURNO
-        FROM
-            ${votacoes.table}
-        WHERE CANDIDATO != 'VOTO NULO' AND TURNO = 1
-        GROUP BY
-            CANDIDATO,
-            TURNO,
-            ESTADO
-        ORDER BY
-            ESTADO ASC,
-            TOTAL_VOTOS DESC
-    `
-
-    try{
-        let data = await votacoes.query(sql)
-        console.log("Dados de votação:", data);
-        const response = await fetch('br_states.json');
-        const neighs = await response.json();
-        callbacks(neighs, data);
-    }catch(e){
-        console.error("Falhou ao carregar os dados de votação")
-    }
-
+        SELECT 
+            ESTADO, 
+            TURNO, 
+            CANDIDATO, 
+            -- CORREÇÃO: Converte BigInt para Integer
+            CAST(SUM(VOTOS) AS INTEGER) as TOTAL_VOTOS
+        FROM ${votacoes.table}
+        WHERE CANDIDATO != 'VOTO NULO' AND CANDIDATO != 'VOTO BRANCO'
+        GROUP BY ESTADO, TURNO, CANDIDATO
+        ORDER BY TOTAL_VOTOS DESC
+    `;
     
-};
+    const data = await votacoes.query(sql);
+    
+    const geoRes = await fetch('br_states.json'); 
+    const geojson = await geoRes.json();
 
+    loadDashboard(geojson, data);
+});
+
+clearBtn.addEventListener('click', clearDashboard);
